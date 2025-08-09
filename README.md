@@ -23,7 +23,7 @@ This writeup demonstrates the complete solution path for the TryHack3M Bricks He
 nmap -A 10.201.6.98
 ```
 
-![Nmap Scan Results](images/Pasted%20image%2020250809180727.png)
+![Nmap Scan Results](Pasted%20image%2020250809180727.png)
 
 The initial scan revealed a WordPress installation with the "Brick by Brick" theme, strongly suggesting this is our primary attack vector given the room name "Brick".
 
@@ -34,7 +34,7 @@ wpscan --url https://bricks.thm --disable-tls-checks
 
 Running with TLS-checks won't work due to certificate issues.
 
-![WPScan Results](images/Pasted%20image%2020250809181711.png)
+![WPScan Results](Pasted%20image%2020250809181711.png)
 
 Here's another reference to "brick" - let's see if this theme has any vulnerability.
 
@@ -77,7 +77,7 @@ pip install alive_progress bs4 prompt_toolkit requests rich
 
 The exploit successfully provided an interactive shell environment:
 
-![Shell Access](images/Pasted%20image%2020250809183224.png)
+![Shell Access](Pasted%20image%2020250809183224.png)
 
 Running the above command gives us a RCE shell.
 
@@ -220,7 +220,7 @@ WantedBy=multi-user.target
 
 The suspicious service points to `/lib/NetworkManager/nm-inet-dialog`. Further investigation of the NetworkManager directory revealed `inet.conf` as the mining configuration file.
 
-![Mining Configuration](images/Pasted%20image%2020250809194008.png)
+![Mining Configuration](Pasted%20image%2020250809194008.png)
 
 Now that we know `inet.conf` is the instance, let's find the associated wallet address.
 
@@ -232,7 +232,7 @@ The configuration file contained an encrypted wallet address. Using string extra
 strings /lib/NetworkManager/inet.conf | grep -E '[13][a-km-zA-HJ-NP-Z1-9]{25,34}|4[0-9AB][1-9A-HJ-NP-Za-km-z]{93}'
 ```
 
-![Encrypted Wallet](images/Pasted%20image%2020250809195524.png)
+![Encrypted Wallet](Pasted%20image%2020250809195524.png)
 
 The wallet address is encrypted, so we have to decode it:
 
@@ -243,7 +243,7 @@ echo 5757314e65474e5962484a4f656d787457544e424e574648555446684d3070735930684b616
 
 It needs to be decrypted again to get the actual wallet ID:
 
-![Decoded Wallet](images/Pasted%20image%2020250809195850.png)
+![Decoded Wallet](Pasted%20image%2020250809195850.png)
 
 **Decoded Wallet Address:** `bc1qyk79fcp9hd5kreprce89tkh4wrtl8avt4l67qa`
 
@@ -251,7 +251,7 @@ It needs to be decrypted again to get the actual wallet ID:
 
 Using blockchain explorer (https://www.blockchain.com/explorer), we traced transactions from this wallet to identify the largest recipient:
 
-![Blockchain Analysis](images/Pasted%20image%2020250809200057.png)
+![Blockchain Analysis](Pasted%20image%2020250809200057.png)
 
 Then we can search for the receiver: `32pTjxTNi7snk8sodrgfmdKao3DEn1nVJM`
 
@@ -259,7 +259,7 @@ Then we can search for the receiver: `32pTjxTNi7snk8sodrgfmdKao3DEn1nVJM`
 
 Searching this Bitcoin address in Google revealed:
 
-![LockBit Attribution](images/Pasted%20image%2020250809200252.png)
+![LockBit Attribution](Pasted%20image%2020250809200252.png)
 
 As we can see, the group is **LockBit** - a notorious ransomware-as-a-service operation.
 
@@ -344,7 +344,7 @@ This challenge demonstrates:
 ```
 TryHack3M-Bricks-Heist/
 ├── README.md
-├── images/
+├── 
 │   ├── Pasted image 20250809180727.png
 │   ├── Pasted image 20250809181711.png
 │   ├── Pasted image 20250809183224.png
