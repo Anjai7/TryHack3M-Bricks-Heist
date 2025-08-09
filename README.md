@@ -267,40 +267,6 @@ As we can see, the group is **LockBit** - a notorious ransomware-as-a-service op
 
 ---
 
-## 📊 Technical Analysis
-
-### CVE-2024-25600 Exploitation Chain
-
-1. **Initial Access:** Unauthenticated access to WordPress REST API endpoint `/bricks/v1/render_element`
-2. **Permission Bypass:** Nonce-based authentication easily bypassed (nonce available in frontend)
-3. **Code Injection:** User input passed to PHP `eval()` function without sanitization
-4. **Remote Execution:** Arbitrary PHP code execution leading to system compromise
-
-### Mining Malware Characteristics
-
-- **Persistence:** Systemd service ensures automatic restart
-- **Stealth:** Disguised as legitimate NetworkManager component  
-- **Communication:** Encrypted configuration to evade detection
-- **Monetization:** Direct mining to LockBit-controlled wallets
-
----
-
-## 🛡️ Mitigation Strategies
-
-### Immediate Actions
-1. **Update Bricks Builder** to version 1.9.6.1 or later
-2. **Remove malicious service:** `systemctl disable ubuntu.service`
-3. **Clean mining artifacts** from `/lib/NetworkManager/`
-4. **Audit system** for additional persistence mechanisms
-
-### Long-term Security
-1. **Regular WordPress Updates**
-2. **Plugin Vulnerability Scanning**
-3. **System Service Monitoring** 
-4. **Network Traffic Analysis** for cryptocurrency mining patterns
-5. **Endpoint Detection** for suspicious process behavior
-
----
 
 ## 🎯 Summary of Findings
 
@@ -311,17 +277,6 @@ As we can see, the group is **LockBit** - a notorious ransomware-as-a-service op
 - **Wallet Address:** `bc1qyk79fcp9hd5kreprce89tkh4wrtl8avt4l67qa`
 - **Threat Actor:** LockBit Ransomware Group
 
----
-
-## 🔗 References
-
-- [CVE-2024-25600 Details](https://nvd.nist.gov/vuln/detail/CVE-2024-25600)
-- [K3ysTr0K3R Exploit Repository](https://github.com/K3ysTr0K3R/CVE-2024-25600-EXPLOIT)
-- [Blockchain Explorer](https://www.blockchain.com/explorer)
-- [LockBit Ransomware Analysis](https://www.cisa.gov/news-events/cybersecurity-advisories/aa23-075a)
-- [WordPress Security Best Practices](https://wordpress.org/support/article/hardening-wordpress/)
-
----
 
 ## 📝 Key Takeaways
 
@@ -332,27 +287,3 @@ This challenge demonstrates:
 4. **Systematic enumeration** and analysis are crucial for complex attack chains
 5. **Defense in depth** is essential for preventing and detecting such attacks
 
----
-
-**Author:** Security Researcher  
-**Date:** August 2025  
-**Difficulty:** Intermediate  
-**Tools Used:** Nmap, WPScan, CVE-2024-25600 Exploit, Systemctl, Blockchain Explorers
-
-## 📁 Repository Structure
-
-```
-TryHack3M-Bricks-Heist/
-├── README.md
-├── 
-│   ├── Pasted image 20250809180727.png
-│   ├── Pasted image 20250809181711.png
-│   ├── Pasted image 20250809183224.png
-│   ├── Pasted image 20250809194008.png
-│   ├── Pasted image 20250809195524.png
-│   ├── Pasted image 20250809195850.png
-│   ├── Pasted image 20250809200057.png
-│   └── Pasted image 20250809200252.png
-└── exploits/
-    └── CVE-2024-25600.py
-```
