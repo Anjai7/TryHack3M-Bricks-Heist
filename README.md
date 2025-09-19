@@ -16,11 +16,11 @@ PORT     STATE SERVICE
 Nmap done: 1 IP address (1 host up) scanned in 2.49 seconds
  ```
 # Website
- ![[Pasted image 20250915205218.png]]
+ ![image](Pasted%20image%2020250915205218.png)
  ## dev.txt
- ![[Pasted image 20250915205254.png]]
+ ![image](Pasted%20image%2020250915205254.png)
  j.txt
- ![[Pasted image 20250915205322.png]]
+ ![image](Pasted%20image%2020250915205322.png)
  # SMB enumeration
 ```
  enum4linux 10.201.81.127                                              
