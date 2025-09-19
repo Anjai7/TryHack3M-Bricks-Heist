@@ -3,14 +3,14 @@ enumeration
 ```
 nmap -A 10.201.6.98
 ```
-![image](Pasted_image_20250809180727.png)
+![image](Pasted%20image%2020250809180727.png)
 since there is a wordpress with name "brick by brick" and the name of this room is brick it is probably where we can find vulnerability 
 so lets enumerate wordpress
 ```
 wpscan --url https://bricks.thm --disable-tls-checks
 ```
 running with tls-checks wont work
-![image](Pasted_image_20250809181711.png)
+![image](Pasted%20image%2020250809181711.png)
 here another reference to brick lets see if this theme has any vulnerability
 search for bricks 1.9.5 vulnerability and you will see a RCE and in the room you can see RCE CVE as key so it is probably the corrrect path
 CVE
@@ -28,7 +28,7 @@ you also need to install some modules
 5. rich
 install it using pip or pip3 install and if not able to install create a python environment
 running the above command give us a RCE shell
-![image](Pasted_image_20250809183224.png)
+![image](Pasted%20image%2020250809183224.png)
 then we can get the first answer 
 ```
 Shell> ls -la  
@@ -153,28 +153,28 @@ ExecStart=/lib/NetworkManager/nm-inet-dialog
 ```
 lets look at the ==/lib/NetworkManager== directory
 and in that inet.conf has this 
-![image](Pasted_image_20250809194008.png)
+![image](Pasted%20image%2020250809194008.png)
 now that we we know inet.conf is the instance lets find the associated wallet address
 ```
 strings /lib/NetworkManager/inet.conf | grep -E '[13][a-km-zA-HJ-NP-Z1-9]{25,34}|4[0-9AB][1-9A-HJ-NP-Za-km-z]{93}'
 
 ```
 we can run this command to find id
-![image](Pasted_image_20250809195524.png)
+![image](Pasted%20image%2020250809195524.png)
 it is encrypted so we have to decode it
 ```
 echo 5757314e65474e5962484a4f656d787457544e424e574648555446684d3070735930684b616c70555a7a566b52335276546b686b65575248647a525a57466f77546b64334d6b347a526d685a6255313459316873636b35366247315a4d30453159556447  
 6130355864486c6157454a3557544a564e453959556e4a685246497a5932355363303948526a4a6b52464a7a546d706b65466c525054303d | xxd -r -p | base64 -d
 ```
 it will need to be again decrypted to get actual id 
-![image](Pasted_image_20250809195850.png)
+![image](Pasted%20image%2020250809195850.png)
 `bc1qyk79fcp9hd5kreprce89tkh4wrtl8avt4l67qa`
 and this is the wallet id
 https://www.blockchain.com/explorer
 then we can search this id in this website to find big amount reciver
-![image](Pasted_image_20250809200057.png)
+![image](Pasted%20image%2020250809200057.png)
 then we can search for the receiver ==32pTjxTNi7snk8sodrgfmdKao3DEn1nVJM==
 in google 
-![image](Pasted_image_20250809200252.png)
+![image](Pasted%20image%2020250809200252.png)
 as we can see the group is lockbit
 -----------------------------------------------------------------------------------------------
